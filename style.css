@@ -11,10 +11,6 @@ Version:        1.0.0
 
 /* =Theme customization starts here
 ------------------------------------------------------- */
-form.submitting .wpcf7-spinner 
-{
-    visibility: visible;
-}
 
 /* your crew app copy page scroll */
 .page-id-3306 div#page-container::-webkit-scrollbar
@@ -22,12 +18,35 @@ form.submitting .wpcf7-spinner
 	display:none !important;
 	width:0 !important;
 }
-/* .page-id-3306 ul.et_pb_side_nav.et-visible
-{
-opacity:0;
-} */
+.contact-page-form{
+	margin-bottom:1.2rem;
+}
+
+.et_pb_button,.blog-details a,.hrf-news a,.wf-block-media a img,.download{
+  transform: scale(1);
+  transition: transform 0.5s ease;
+}
+.blog-details a{
+	transition: transform 0.5s;
+}
+:where(.et_pb_button):hover {
+  transform: scale(1.05);
+}
+.blog-details a:hover,.hrf-news a:hover,.download:hover{
+	transform: scale(1.05) !important;
+}
+.et_pb_text p,.et_pb_text h5{
+	font-size:18px !important;
+}
+.blog-img-container {
+  transition: transform 0.5s;
+}
+
+.blog-img-container:hover,.wf-block-media a img:hover {
+  transform: scale(1.1);
+}
 .et-pb-arrow-next{
-	z-index:999;
+	z-index:9999;
 }
 
 .page-id-3306 .et-l--post .et_builder_inner_content
@@ -250,6 +269,7 @@ label.hrf-footer-submit {
 	color: #fff;
 	display: flex;
 	justify-content: center;
+	padding:2rem 0;
 }
 .hover-hrf-btn::after{
 	content: url(/wp-content/uploads/2022/07/white-arrow.svg);
@@ -595,6 +615,7 @@ ol li {
 	flex-wrap:wrap;
 	row-gap: 22px;
 	margin:0px -15px;
+	justify-content:center;
 }
 .partner-logo-div>a{
 	max-width:20%;
@@ -788,7 +809,7 @@ ol li {
 	margin-top:30px;
 	margin-bottom:30px;
 }
-.contact-page-form input[type=submit] {
+.contact-page-form input[type=submit],#wpcf7-f4026-p4022-o1 input[type=submit] {
 	font-size: 18px;
 	line-height: 24px;
 	font-weight: 900;
@@ -1611,6 +1632,7 @@ header .et_builder_inner_content{
 	}
 	
 }
+
 /* CSS code to target only the schedule form */
 .schedule-1-outer-div input,.schedule-1-outer-div select{
     margin-bottom:20px;
@@ -1672,11 +1694,8 @@ header .et_builder_inner_content{
     justify-content:center;
     align-items:center;
 /*  text-align:center; */}
-.supporter-state-div::before{
-    content: 'State';
-    position: absolute;
-    left: 0;
-    top: 0;
+.supporter-state-div p:first-child{
+   
     width: 100px;
     height: 40px;
     background-color: #5b268f;
@@ -1686,7 +1705,8 @@ header .et_builder_inner_content{
     display:flex;
     justify-content:center;
     align-items:center;
-/*  text-align:center; */}
+	padding-bottom:0;
+}
 .supporter-postcode-div::before{
     content: 'Postcode';
     position: absolute;
@@ -1788,4 +1808,32 @@ div#wpcf7-f3634-p3628-o1 input[type="submit"]{
     flex-wrap: wrap;
     row-gap: 10px;
 }
+}
+.slider-button-container-flex{
+	display:flex;
+	column-gap:10px;
+}
+.slider-button-container-flex.center{
+	justify-content:center;
+}
+.ep-button {
+    background-color: #892094 !important;
+}
+div#myModal {
+    
+    top: 50%;
+   
+}
+/* .modal-backdrop{
+	z-index:10 !important;
+} */
+.modal-header{
+	justify-content:flex-end !important;
+}
+.btn-purple{
+	background-color:#5b268f !important;
+	color:#fff;
+}
+.btn-purple:hover{
+	color:#fff !important;
 }

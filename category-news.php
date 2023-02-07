@@ -209,7 +209,7 @@ $args = array(
                         </a>
                     </div>
                     <div class="news_details">
-                    <h2>'.get_the_title().'</h2>
+                    <a href="'.get_the_permalink().'"><h2>'.get_the_title().'</h2></a>
                     <p class="news_publish_date">'.$date.'</p>
                     <p>'.strip_tags(get_the_excerpt()).'</p>
                     <span class="courtesy">'.$courtesyText.'</span>

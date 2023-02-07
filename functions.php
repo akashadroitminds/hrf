@@ -1,6 +1,6 @@
 <?php
 error_reporting(0);
-define('RAISELY_TOKEN','raisely-sk-ffe7c59ed3f8df353371275e393ccca5');
+define('RAISELY_TOKEN','raisely-sk-ce02845d0cebf32f13ef14af9747a2e7');
 function my_theme_enqueue_styles() { 
     wp_enqueue_style( 'parent-style', get_template_directory_uri() . '/style.css' );
 	wp_enqueue_script('script', get_stylesheet_directory_uri() . '/script.js', array('jquery'), '20120206', true);
@@ -184,10 +184,10 @@ function news(){
 		  $listenLink = get_field('add_listen_button_link');
 		  $readMore = "Listen";
 		  if($listenLink){
-			   $thumbnail= '<div class="blog-img-container" style="background-image:url(' .$thumb[0].');    background-position: center center;background-size: cover;
+			   $thumbnail= '<a href="'.get_the_permalink().'"><div class="blog-img-container" style="background-image:url(' .$thumb[0].');    background-position: center center;background-size: cover;
 					background-repeat: no-repeat;width:100%;height:250px;">
 						
-					</div>';
+					</div></a>';
 			  $readMoreLink = '<a href="'.$listenLink.'" target="_blank" class="readmore">'.$readMore.'</a>';
 		  }else{
 			   $thumbnail= '<div class="blog-img-container" style="background-image:url(' .$thumb[0].');    background-position: center center;background-size: cover;
@@ -208,10 +208,10 @@ function news(){
 			$youtubeimg = $one.$youtubeId.$two;
 		 
 		  if($watchLink){
-			   $thumbnail= '<div class="blog-img-container" style="background-image:url('.$youtubeimg.');    background-position: center center;background-size: cover;
+			   $thumbnail= '<a href="'.get_the_permalink().'"><div class="blog-img-container" style="background-image:url('.$youtubeimg.');    background-position: center center;background-size: cover;
 					background-repeat: no-repeat;width:100%;height:250px;">
 						
-					</div>';
+					</div></a>';
 			   $readMoreLink = '<a href="'.$watchLink.'" target="_blank" class="readmore">'.$readMore.'</a>';
 		  }else{
 			  $thumbnail= '<div class="blog-img-container" style="background-image:url("' .$thumb[0].'");    background-position: center center;background-size: cover;
@@ -223,10 +223,10 @@ function news(){
 	  }
 	  else{
 		$readMore = "Read More";
-		   $thumbnail= '<div class="blog-img-container" style="background-image:url(' .$thumb[0].');    background-position: center center;background-size: cover;
+		   $thumbnail= '<a href="'.get_the_permalink().'"><div class="blog-img-container" style="background-image:url(' .$thumb[0].');    background-position: center center;background-size: cover;
 					background-repeat: no-repeat;width:100%;height:250px;">
 						
-					</div>';
+					</div></a>';
 		  $readMoreLink = '<a href="'.get_the_permalink().'" class="readmore">'.$readMore.'</a>';
 	  }
 	
@@ -240,10 +240,10 @@ function news(){
 		$html .='<div class="hrf-news">
 					'.$thumbnail.'
 					<div class="blog-details">
-						<p><a href="#" class="category" style="background:'.$bckColor.'">
+						<p><a class="category" style="background:'.$bckColor.'">
 						'.$categories[0]->cat_name.'
 						</a></p>
-						<h2>'.get_the_title().'</h2>
+						<a href="'.get_the_permalink().'"><h2>'.get_the_title().'</h2></a>
 						'.$postDate.'';
 						if (has_excerpt()) {
 		
@@ -355,6 +355,28 @@ function last_updated(){
 	return $html;
 }
 
+function dd_add_datepicker_to_cf7() {
+    $load_scripts = false;
+    if ( is_singular() ) {
+        $post = get_post();
+        if ( has_shortcode( $post->post_content, 'contact-form-7' ) ) {
+            $load_scripts = true;
+        }
+    }
+    if ( $load_scripts ) {
+        wp_enqueue_script( 'jquery-ui-datepicker' ); // included with WordPress
+        wp_enqueue_style( 'ui-datepicker-style', 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css' );
+        // Choose a different theme is you want https://cdnjs.com/libraries/jqueryui
+        wp_enqueue_style( 'ui-datepicker-theme', 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/theme.min.css' );
+        add_action( 'wp_print_footer_scripts', function () {
+            // add different options to datepicker if you want https://api.jqueryui.com/datepicker/
+            echo '<script type="text/javascript">jQuery(function($){$(".use-datepicker").datepicker()});</script>';
+        } );
+    }
+
+}
+
+add_action( 'wp_enqueue_scripts', 'dd_add_datepicker_to_cf7', 99 );
 
 function hrf_create_my_table() {
     global $wpdb;
@@ -376,7 +398,15 @@ function hrf_create_my_table() {
     }
  }
  
- add_action( init, 'hrf_create_my_table' );
+add_action( init, 'hrf_create_my_table' );
+
+// function delete_custom_table() {
+//     global $wpdb;
+//     $table_name = $wpdb->prefix . 'raisely';
+//     $sql = "DROP TABLE IF EXISTS $table_name";
+//     $wpdb->query($sql);
+// }
+// add_action( init, 'delete_custom_table' );
 
 function save_cf7_data($WPCF7_ContactForm) {
     global $wpdb;
@@ -389,8 +419,10 @@ function save_cf7_data($WPCF7_ContactForm) {
                       'Authorization' => 'Bearer ' . RAISELY_TOKEN );
     $data = $submission->get_posted_data();
     $emailCheck = $data['email'];
-    $results = $wpdb->get_results( "SELECT uuid FROM $table_name WHERE email = '$emailCheck'", ARRAY_A );
+    $results = $wpdb->get_results( "SELECT id,uuid,email FROM $table_name WHERE email = '$emailCheck'", ARRAY_A );
     $localuuid = $results[0]['uuid'];
+	$localemail = $results[0]['email'];
+    $localid = $results[0]['id'];
     // Newsletter
     if ( $submission && $form_id == 328 ) {
         $arr['data'] = array(
@@ -415,12 +447,23 @@ function save_cf7_data($WPCF7_ContactForm) {
         $uuidPeople = $responseData['data']['uuid'];
         if($uuidPeople){
            
+            if(empty($localemail)){
+                $data = array(
+                    'form_id' => 328,
+                    'uuid' => $uuidPeople,
+                    'email' => $responseData['data']['email']
+                    );
+                $wpdb->insert( $table_name, $data );
+           }else{
             $data = array(
-                'form_id' => 328,
                 'uuid' => $uuidPeople,
-                'email' => $responseData['data']['email']
+                'email' => $responseData['data']['email'],
             );
-            $wpdb->insert( $table_name, $data );
+            $where = array(
+                'id' => $localid,
+            );
+            $wpdb->update( $table_name, $data, $where );
+           }
         }
         if ( is_wp_error( $response ) ) {
             $error_message = $response->get_error_message();
@@ -440,7 +483,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                 $response = wp_remote_post( 'https://api.raisely.com/v3/users/'.$localuuid.'', $args );
                 add_filter('wpcf7_ajax_json_echo', 'my_custom_response_message',10,2);
                 function my_custom_response_message($response, $result) {
-                    $response["message"] = "You are already subscribed";            
+                    $response["message"] = "You are subscribed";            
                     return $response;
                 }
             }else{
@@ -451,8 +494,9 @@ function save_cf7_data($WPCF7_ContactForm) {
                 }
             }
         }
+		
         if($uuidPeople){
-            $uuidNewsletter = '4f883060-987e-11ed-9d56-f135942fcdaf';
+            $uuidNewsletter = 'e4cb04a0-829d-11ed-b187-5310bc2784d3';
             $arrTag['data'][] = array(
                 'uuid' => $uuidPeople,      
                 ); 
@@ -470,6 +514,7 @@ function save_cf7_data($WPCF7_ContactForm) {
             $tagResponse = wp_remote_post( 'https://api.raisely.com/v3/tags/'.$uuidNewsletter.'/records', $tagargs );
             $responseTagData = json_decode(wp_remote_retrieve_body($tagResponse), true);
         }
+	
     }
     // Contact
     if ( $submission && $form_id == 1228 ) {
@@ -478,8 +523,9 @@ function save_cf7_data($WPCF7_ContactForm) {
         $acc = $data['acceptance-101'];
         $enquiry = $data['c-enquiry'];
         $arr['data'] = array(
-            'public' => array('message'=>$data['c-message'],'companyName' => $data['c-company-name'],'enquiryInRelationTo'=> $enquiry[0]),
-            'fullName' => $data['c-name'],  
+            'public' => array('message'=>$data['c-message'],'companyName' => $data['c-company-name'],'enquiryInRelationTo'=> $enquiry[0],'othersPleaseSpecify'=>$data['c-others']),
+            'firstName' => $data['c-name'],  
+            'lastName' => $data['c-lastname'],  
             'email' => $data['email'],
             'allowExists'=> true    
             ); 
@@ -498,12 +544,23 @@ function save_cf7_data($WPCF7_ContactForm) {
         $responseData = json_decode(wp_remote_retrieve_body($response), true);
         $uuidPeople = $responseData['data']['uuid'];
         if($uuidPeople){
+             if(empty($localemail)){
+                $data = array(
+                    'form_id' => 1228,
+                    'uuid' => $uuidPeople,
+                    'email' => $responseData['data']['email']
+                    );
+                $wpdb->insert( $table_name, $data );
+           }else{
             $data = array(
-                'form_id' => 1228,
                 'uuid' => $uuidPeople,
-                'email' => $responseData['data']['email']
+                'email' => $responseData['data']['email'],
             );
-            $wpdb->insert( $table_name, $data );
+            $where = array(
+                'id' => $localid,
+            );
+            $wpdb->update( $table_name, $data, $where );
+           }
         }
         if ( is_wp_error( $response ) ) {
             $error_message = $response->get_error_message();
@@ -523,7 +580,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                 );
                 $response = wp_remote_post( 'https://api.raisely.com/v3/users/'.$localuuid.'', $args );
                 if($localuuid){
-                    $uuidGeneral = '61067bb0-9b05-11ed-844c-ed9424891795';
+                    $uuidGeneral = 'ebf742c0-829d-11ed-a02b-e5500cb95cf2';
                     $arrTag['data'][] = array(
                         'uuid' => $localuuid,      
                         ); 
@@ -544,7 +601,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                 if($acc == 1){
                     
                     if($localuuid){
-                        $uuidNewsletter = '4f883060-987e-11ed-9d56-f135942fcdaf';
+                        $uuidNewsletter = 'e4cb04a0-829d-11ed-b187-5310bc2784d3';
                         $arrTag['data'][] = array(
                             'uuid' => $localuuid,      
                             ); 
@@ -564,7 +621,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                     }
                 }else{
                     
-                        $uuidNewsletter = '4f883060-987e-11ed-9d56-f135942fcdaf';
+                        $uuidNewsletter = 'e4cb04a0-829d-11ed-b187-5310bc2784d3';
                        
                         $tagargs = array(
                                 'method' => 'DELETE',
@@ -582,7 +639,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                 }
                 add_filter('wpcf7_ajax_json_echo', 'my_custom_response_message',10,2);
                 function my_custom_response_message($response, $result) {
-                    $response["message"] = "You are already submitted";         
+                    $response["message"] = "You have successfully submitted";         
                     return $response;
                 }
             }else{
@@ -590,7 +647,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                 if($acc == 1){
                     
                     if($uuidPeople){
-                        $uuidNewsletter = '4f883060-987e-11ed-9d56-f135942fcdaf';
+                        $uuidNewsletter = 'e4cb04a0-829d-11ed-b187-5310bc2784d3';
                         $arrTag['data'][] = array(
                             'uuid' => $uuidPeople,      
                             ); 
@@ -610,7 +667,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                     }
                 }
                 if($uuidPeople){
-                    $uuidGeneral = '61067bb0-9b05-11ed-844c-ed9424891795';
+                    $uuidGeneral = 'ebf742c0-829d-11ed-a02b-e5500cb95cf2';
                     $arrTag['data'][] = array(
                         'uuid' => $uuidPeople,      
                         ); 
@@ -664,12 +721,23 @@ function save_cf7_data($WPCF7_ContactForm) {
         $responseData = json_decode(wp_remote_retrieve_body($response), true);
         $uuidPeople = $responseData['data']['uuid'];
         if($uuidPeople){
+             if(empty($localemail)){
+                $data = array(
+                    'form_id' => 472,
+                    'uuid' => $uuidPeople,
+                    'email' => $responseData['data']['email']
+                    );
+                $wpdb->insert( $table_name, $data );
+           }else{
             $data = array(
-                'form_id' => 472,
                 'uuid' => $uuidPeople,
-                'email' => $responseData['data']['email']
+                'email' => $responseData['data']['email'],
             );
-            $wpdb->insert( $table_name, $data );
+            $where = array(
+                'id' => $localid,
+            );
+            $wpdb->update( $table_name, $data, $where );
+           }
         }
         if ( is_wp_error( $response ) ) {
             $error_message = $response->get_error_message();
@@ -689,7 +757,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                 );
                 $response = wp_remote_post( 'https://api.raisely.com/v3/users/'.$localuuid.'', $args );
                 if($localuuid){
-                    $uuidGeneral = '03283b90-96ec-11ed-a849-cd68a68edf4d';
+                    $uuidGeneral = 'c472fd20-829d-11ed-a02b-e5500cb95cf2';
                     $arrTag['data'][] = array(
                         'uuid' => $localuuid,      
                         ); 
@@ -709,12 +777,12 @@ function save_cf7_data($WPCF7_ContactForm) {
                 }
                 add_filter('wpcf7_ajax_json_echo', 'my_custom_response_message',10,2);
                 function my_custom_response_message($response, $result) {
-                    $response["message"] = "You are already submitted";         
+                    $response["message"] = "You have successfully submitted";         
                     return $response;
                 }
             }else{
                 if($uuidPeople){
-                    $uuidGeneral = '03283b90-96ec-11ed-a849-cd68a68edf4d';
+                    $uuidGeneral = 'c472fd20-829d-11ed-a02b-e5500cb95cf2';
                     $arrTag['data'][] = array(
                         'uuid' => $uuidPeople,      
                         ); 
@@ -734,7 +802,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                 }
                 add_filter('wpcf7_ajax_json_echo', 'my_custom_response_message',10,2);
                 function my_custom_response_message($response, $result) {
-                    $response["message"] = "You have submitted successfully";    
+                    $response["message"] = "You have successfully submitted";    
                     return $response;
                 }
             }
@@ -743,12 +811,20 @@ function save_cf7_data($WPCF7_ContactForm) {
         
     }
     // Fundraising form
-    if ( $submission && $form_id == 4027 ) {
+    if ( $submission && $form_id == 4026 ) {
         $data = $submission->get_posted_data();
+		$enquiry = $data['c-enquiry'];
+		$programState = $data['supporter-state'];
         $arr['data'] = array(
-            'public' => array('nameOfOrganization'=>$data['name-of-organisation']),
+            'public' => array('nameOfOrganization'=>$data['name-of-organisation'],'enquiryInRelationTo'=> $enquiry[0],'othersPleaseSpecify'=>$data['c-others']),
+            'firstName' => $data['name-of-organisation'],
+			'lastName' => $data['supporter-representative'],
             'phoneNumber'=>$data['representative-telephone'],
             'email' => $data['email'],
+			'state' => $programState[0],
+			'address1' => $data['supporter-address'],
+			'suburb' => $data['supporter-city'],
+			'postcode' => $data['supporter-postcode'],
             'allowExists'=> true  
             ); 
         $formData = json_encode($arr);
@@ -766,14 +842,25 @@ function save_cf7_data($WPCF7_ContactForm) {
         $responseData = json_decode(wp_remote_retrieve_body($response), true);
         $uuidPeople = $responseData['data']['uuid'];
         if($uuidPeople){
+             if(empty($localemail)){
+                $data = array(
+                    'form_id' => 4026,
+                    'uuid' => $uuidPeople,
+                    'email' => $responseData['data']['email']
+                    );
+                $wpdb->insert( $table_name, $data );
+           }else{
             $data = array(
-                'form_id' => 4027,
                 'uuid' => $uuidPeople,
-                'email' => $responseData['data']['email']
+                'email' => $responseData['data']['email'],
             );
-            $wpdb->insert( $table_name, $data );
+            $where = array(
+                'id' => $localid,
+            );
+            $wpdb->update( $table_name, $data, $where );
+           }
         }
-        // print_r($responseData);
+        
         if ( is_wp_error( $response ) ) {
             $error_message = $response->get_error_message();
             echo "Something went wrong: $error_message";
@@ -792,7 +879,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                 );
                 $response = wp_remote_post( 'https://api.raisely.com/v3/users/'.$localuuid.'', $args );
                 if($localuuid){
-                    $uuidGeneral = 'c2a30050-9c81-11ed-852c-7b99f5f55175';
+                    $uuidGeneral = '69762040-9568-11ed-9193-5f2ace94f41e';
                     $arrTag['data'][] = array(
                         'uuid' => $localuuid,      
                         ); 
@@ -812,12 +899,12 @@ function save_cf7_data($WPCF7_ContactForm) {
                 }
                 add_filter('wpcf7_ajax_json_echo', 'my_custom_response_message',10,2);
                 function my_custom_response_message($response, $result) {
-                    $response["message"] = "You are already submitted";         
+                    $response["message"] = "You have successfully submitted";         
                     return $response;
                 }
             }else{
                 if($uuidPeople){
-                    $uuidGeneral = 'c2a30050-9c81-11ed-852c-7b99f5f55175';
+                    $uuidGeneral = '69762040-9568-11ed-9193-5f2ace94f41e';
                     $arrTag['data'][] = array(
                         'uuid' => $uuidPeople,      
                         ); 
@@ -837,7 +924,7 @@ function save_cf7_data($WPCF7_ContactForm) {
                 }
                 add_filter('wpcf7_ajax_json_echo', 'my_custom_response_message',10,2);
                 function my_custom_response_message($response, $result) {
-                    $response["message"] = "You have submitted successfully";    
+                    $response["message"] = "You have successfully submitted";    
                     return $response;
                 }
             }
@@ -847,3 +934,15 @@ function save_cf7_data($WPCF7_ContactForm) {
     }
 }
 add_action('wpcf7_before_send_mail', 'save_cf7_data', 10, 1);
+
+// popup trigger on offline fundraiser lead page
+
+function enqueue_custom_scripts_styles() {
+    if ( is_page( 4022 ) ) {
+        wp_enqueue_script( 'my-custom-script', 'https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js', '1.0.0', true );
+        wp_enqueue_style( 'my-custom-style', 'https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css', array(), '1.0.0' );
+    }
+}
+add_action( 'wp_enqueue_scripts', 'enqueue_custom_scripts_styles' );
+
+
